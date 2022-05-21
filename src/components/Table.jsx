@@ -1,44 +1,56 @@
-import React, { useState } from "react";
-import "../App.css";
-function Table(prop) {
-  const [searchedName, setSearchedName] = useState("");
+import '../App.css';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+function Table({ list = [] }) {
+  const navigate = useNavigate();
+  const [searchValue, setSearchValue] = useState('');
+
+  const getFilteredItems = () => {
+    if (searchValue) {
+      return list.filter((item) =>
+        item.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+    return list;
+  };
 
   return (
     <>
       <input
         type="text"
-        placeholder="Arama Yapınız..."
-        onChange={(e) => setSearchedName(e.target.value)}
+        placeholder="Search"
+        onChange={(e) => setSearchValue(e.target.value)}
         className="search-bar"
-        style={{ float: "right" }}
+        style={{ float: 'right' }}
       />
       <div className="col-12">
-        <table class="table table-bordered">
+        <table className="table table-bordered">
           <thead>
             <tr>
-              <th scope="col">İsim</th>
-              <th scope="col">Soyisim</th>
-              <th scope="col">Yaş</th>
+              <th scope="col">Name</th>
+              <th scope="col">DESCRIPTION</th>
+              <th scope="col">CREATED AT</th>
+              <th scope="col"></th>
             </tr>
           </thead>
           <tbody>
-            {prop.list
-              .filter((item) => {
-                if (searchedName === "") {
-                  return item;
-                } else if (item.name.toLowerCase().includes(searchedName)) {
-                  return item;
-                }
-              })
-              .map((item) => (
-                <>
-                  <tr key={item.name}>
-                    <td>{item.name}</td>
-                    <td>{item.surname}</td>
-                    <td>{item.age}</td>
-                  </tr>
-                </>
-              ))}
+            {getFilteredItems().map((item) => (
+              <tr key={item.name}>
+                <td>{item.name}</td>
+                <td>{item.description}</td>
+                <td>{`${new Date(
+                  item.createdAt
+                ).toLocaleDateString()} ${new Date(
+                  item.createdAt
+                ).toLocaleTimeString()}`}</td>
+                <td>
+                  <button onClick={() => navigate(`/forms/${item.id}`)}>
+                    Detail
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

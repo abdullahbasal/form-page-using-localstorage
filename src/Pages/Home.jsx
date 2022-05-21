@@ -1,99 +1,74 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import FormPopup from "../components/FormPopup";
-import Table from "../components/Table";
-const getItem = () => {
-  const incomingListData = localStorage.getItem("lists");
+import React, { useEffect, useState } from 'react';
+import FormPopup from '../components/FormPopup';
+import Table from '../components/Table';
+import { FORM_LOCAL_STORAGE_KEY } from '../constants';
+import { v4 as uuid } from 'uuid';
 
-  if (incomingListData) {
-    return JSON.parse(localStorage.getItem("lists"));
-  } else {
+const getItem = () => {
+  try {
+    const incomingListData = localStorage.getItem(FORM_LOCAL_STORAGE_KEY);
+
+    if (incomingListData) {
+      return JSON.parse(incomingListData);
+    } else {
+      return [];
+    }
+  } catch (error) {
     return [];
   }
 };
-function Home() {
+
+const Home = () => {
   const [list, setList] = useState(getItem());
-  const [formValue, setFormValue] = useState({
-    name: "",
-    surname: "",
-    age: "",
-  });
   const [isOpen, setIsOpen] = useState(false);
-  const [pathName, setPathName] = useState("/");
-  function handleChange(e) {
-    const value = e.target.value;
-    setFormValue({
-      ...formValue,
-      [e.target.name]: value,
-    });
-  }
 
-  const handleSubmit = () => {
-    if (formValue.name && formValue.surname !== "") {
-      setList([
-        ...list,
-        {
-          name: formValue.name,
-          surname: formValue.surname,
-          age: formValue.age,
-        },
-      ]);
-      setPathName("/");
-      togglePopup(!isOpen);
-    } else {
-      alert("İsim ve Soyisim Alanları Zorunludur.");
-    }
-    localStorage.setItem("lists", JSON.stringify(list));
-  };
-
-  useEffect(() => {
-    localStorage.setItem("lists", JSON.stringify(list));
-    getItem();
-  }, [list, pathName]);
   const togglePopup = () => {
     setIsOpen(!isOpen);
-    setFormValue({ name: "", surname: "", age: "" });
   };
 
   const clearTable = () => {
-    localStorage.clear();
-    window.location.reload();
+    localStorage.removeItem(FORM_LOCAL_STORAGE_KEY);
+    setList([]);
   };
-  console.log(formValue.name);
+
+  const handleSaveForm = (form) => {
+    setList([
+      ...list,
+      { ...form, id: uuid(), createdAt: new Date().getTime() },
+    ]);
+    localStorage.setItem(FORM_LOCAL_STORAGE_KEY, JSON.stringify(form));
+    togglePopup();
+  };
+
+  useEffect(() => {
+    localStorage.setItem(FORM_LOCAL_STORAGE_KEY, JSON.stringify(list));
+    getItem();
+  }, [list]);
+
   return (
     <div className="container" style={{ marginTop: 100 }}>
       <div className="row justify-content-center">
         <div className="col-8 align-self-center">
-          <Link to={`/modal/add-item`}>
-            <button
-              className="add-button"
-              onClick={togglePopup}
-              style={{ float: "left" }}
-            >
-              Tabloya Ekleme Yap
-            </button>
-          </Link>
+          <button
+            className="add-button"
+            onClick={togglePopup}
+            style={{ float: 'left' }}>
+            Add New Form
+          </button>
           <button
             className="clear-table-button"
             onClick={clearTable}
-            style={{ float: "left" }}
-          >
-            Hepsini Sil
+            style={{ float: 'left' }}>
+            Clear All
           </button>
           {isOpen && (
-            <FormPopup
-              handleClose={togglePopup}
-              handleChange={handleChange}
-              handleSubmit={handleSubmit}
-              formValue={formValue}
-              pathName={pathName}
-            />
+            <FormPopup onClose={togglePopup} onSave={handleSaveForm} />
           )}
           <Table list={list} />
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Home;

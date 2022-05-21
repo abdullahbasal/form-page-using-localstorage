@@ -38,3 +38,8 @@
   border: 1px solid red;
   font-size: 20px;
 }
+
+.form-fields{
+  border: 1px solid;
+  padding: 5px;
+}
